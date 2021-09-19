@@ -111,6 +111,23 @@ Describe 'DSC-compliant package installation and uninstallation' {
 			Uninstall-Package -Provider $ChocolateyGet -Name $package | Where-Object {$_.Name -contains $package} | Should -Not -BeNullOrEmpty
 		}
 	}
+	Context 'with nonstandard package parameter syntax' {
+		BeforeAll {
+			$package = 'visualstudio2017feedbackclient'
+			$installDir = Join-Path -Path $env:ProgramFiles -ChildPath $package
+			$packageParams = "--installPath $installDir --locale en-US"
+			Remove-Item -Force -Recurse -Path $installDir -ErrorAction SilentlyContinue
+		}
+		It 'silently installs a package with nonstandard package parameter syntax' {
+			Install-Package -Force -Provider $ChocolateyGet -Name $package -PackageParameters $packageParams | Where-Object {$_.Name -contains $package} | Should -Not -BeNullOrEmpty
+		}
+		It 'correctly passed parameters to the package' {
+			Get-ChildItem -Path $installDir -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+		}
+		It 'silently uninstalls the locally installed package just installed' {
+			Uninstall-Package -Provider $ChocolateyGet -Name $package | Where-Object {$_.Name -contains $package} | Should -Not -BeNullOrEmpty
+		}
+	}
 }
 
 Describe 'pipeline-based package installation and uninstallation' {
